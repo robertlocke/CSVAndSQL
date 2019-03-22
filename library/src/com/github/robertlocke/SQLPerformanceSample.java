@@ -235,8 +235,13 @@ public class SQLPerformanceSample {
                 '}';
     }
 
-    public String createSQL(){
-        return "DROP TABLE SQL_PERFORMANCE; CREATE TABLE SQL_PERFORMANCE( ID int, CREATETIME timestamp, PERSISTTIME timestamp, SITE varchar(200), CONFIG varchar(200), QUERY varchar(200), NUMROWS int, FETCH float, TOTAL float, EXECUTION float, INSTANCE varchar(200), OPEN float, COMMIT float, CLOSE float, SUPPORTMODE varchar(200), LOCALID int, SERVERID int, QUEUEID int, ALERTLEVEL int, ALERTMAX int );";
+    public String deleteTable(){
+        return "DROP TABLE SQL_PERFORMANCE;";
+    }
+
+    public String createTable(){
+        return "CREATE TABLE SQL_PERFORMANCE( ID int, CREATETIME timestamp, PERSISTTIME timestamp, SITE varchar(200), CONFIG varchar(200), QUERY varchar(200), NUMROWS int, FETCH float, TOTAL float, EXECUTION float, INSTANCE varchar(200), OPEN float, COMMIT float, CLOSE float, SUPPORTMODE varchar(200), LOCALID int, SERVERID int, QUEUEID int, ALERTLEVEL int, ALERTMAX int );";
+
     }
 
     public String toSQL() {

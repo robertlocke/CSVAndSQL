@@ -1,50 +1,76 @@
 package com.github.robertlocke;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
+import java.io.File;
 
-import com.github.utils.Settings;
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.ResultSet;
+import java.io.IOException;
+import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.Scanner;
 
 public class ImportSQL {
 
+    static Logger log = LogManager.getLogger(ImportSQL.class);
+
 
     public static void main(String[] args) {
+        if (args == null || args.length == 0)
+            throw new IllegalArgumentException("1 argument with the path to a .SQL file to import is required");
 
-        Settings set = new Settings();
-        set.setOutputFilePath("E:\\sqlToCSV.txt");
+        String path = args[0];
 
-        Configuration config = new Configuration();
+        File file = new File(path);
 
+        if (!file.exists()) {
+            System.out.println("File not Found");
+            System.exit(1);
+        }
 
-
+        Configuration configuration = new Configuration();
+        Database db = new Database(configuration);
 
         try {
-            Connection con = DriverManager.getConnection(config.getURL(), config.getUSERNAME(), config.getPASSWORD());
+            log.info("Connecting to DB...");
+            db.open();
+            log.info("Connection Succesful...");
 
-
-            Statement stmt = con.createStatement();
-            ResultSet rs = stmt.executeQuery("select * from sql_performance");
-            while (rs.next()){
-                System.out.println(rs.getInt(1) + "  " + rs.getDate(2) + "  " + rs.getDate(3) + " " + rs.getString(4) + " " + rs.getString(5) + " " + rs.getString(6) + " " + rs.getInt(7) + " " + rs.getFloat(8) + " " + rs.getFloat(9) + " " + rs.getFloat(10) + " " + rs.getString(11) + " " + rs.getFloat(12) + " " + rs.getFloat(13) + " " + rs.getFloat(14) + " " + rs.getString(15) + " " + rs.getLong(16) + " " + rs.getLong(17) + " " + rs.getLong(18) + " " + rs.getInt(19) + " " + rs.getInt(20));
+            Scanner sc = new Scanner(file);
+            if (!sc.hasNextLine()) {
+                throw new IllegalStateException("file was empty!");
             }
-            stmt.close();
-            rs.close();
-            con.close();
 
-        } catch (java.sql.SQLException e) {
-            System.out.println(e + " problem b");
+            String line;
+            while (sc.hasNextLine()) {
+                line = sc.nextLine();
+
+                if (line.isBlank()) continue;
+
+                if (line.contains(";")) {
+                    line = line.substring(0, line.lastIndexOf(";"));
+                }
+
+                System.out.println("Executing `" + line + "`");
+
+                Statement stmt = db.getStatement();
+                stmt.executeUpdate(line);
+                stmt.close();
+
+                log.info("Insert Executed");
+            }
+
+            db.commit();
+            System.out.println("Execution Complete");
+        } catch (IOException e) {
+            e.printStackTrace();
+            System.exit(1);
+        } catch (SQLException e) {
+            e.printStackTrace();
+            System.exit(2);
+        } finally {
+            db.close();
         }
-
-        try {
-            Class.forName("oracle.jdbc.driver.OracleDriver");
-        } catch (ClassNotFoundException e) {
-            System.out.println(e + " problem a");
-        }
-
-
-
     }
+
 }
